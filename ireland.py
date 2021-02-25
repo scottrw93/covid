@@ -8,6 +8,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as mtick
 
 
+
 def clean_date(date):
     return date.split(' ')[0]
 
