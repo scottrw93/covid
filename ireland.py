@@ -23,11 +23,11 @@ def average(rows, average_over):
         yield sum(period)/float(len(period))
 
 def project_for_r(choosen_stat_per_period, r):
-    ninty_day_prediction = [choosen_stat_per_period[-1]]
-    while len(ninty_day_prediction) < (90. + average_over)/average_over:
-        next_projection = r * ninty_day_prediction[-1]
-        ninty_day_prediction.append(next_projection)
-    return ninty_day_prediction
+    ninty_day_projection = [choosen_stat_per_period[-1]]
+    while len(ninty_day_projection) < (90. + average_over)/average_over:
+        next_projection = r * ninty_day_projection[-1]
+        ninty_day_projection.append(next_projection)
+    return ninty_day_projection
 
 def args():
     stats = ['deaths', 'cases', 'hospitalisied', 'icu', 'worker']
@@ -98,18 +98,18 @@ ax2.set_yticks([50, 200, 500, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 7000, 80
 last_n_periods = choosen_stat_per_period[-previous_periods_in_projection::]
 r = round((sum(last_n_periods[1::]))/(sum(last_n_periods[:previous_periods_in_projection-1])), 2)
 
-ninty_day_prediction = project_for_r(choosen_stat_per_period, r)
-ninty_day_prediction_r6 = project_for_r(choosen_stat_per_period, 0.6)
-ninty_day_prediction_r75 = project_for_r(choosen_stat_per_period, 0.75)
+ninty_day_projection = project_for_r(choosen_stat_per_period, r)
+ninty_day_projection_r6 = project_for_r(choosen_stat_per_period, 0.6)
+ninty_day_projection_r75 = project_for_r(choosen_stat_per_period, 0.75)
 
 days_for_projection = [days_since_epoch[-1]]
-while len(days_for_projection) < len(ninty_day_prediction):
+while len(days_for_projection) < len(ninty_day_projection):
     days_for_projection.append(days_for_projection[-1] + average_over)
 
 ax2.plot(days_since_epoch, choosen_stat_per_period, 'b', label ='{} per day'.format(stat))
-ax2.plot(days_for_projection, ninty_day_prediction, 'b', linestyle='dashed', label ='R {}'.format(r))
-ax2.plot(days_for_projection, ninty_day_prediction_r6, 'r', linestyle='dashed', label ='R 0.6')
-ax2.plot(days_for_projection, ninty_day_prediction_r75, 'g', linestyle='dashed', label ='R 0.75')
+ax2.plot(days_for_projection, ninty_day_projection, 'b', linestyle='dashed', label ='R {}'.format(r))
+ax2.plot(days_for_projection, ninty_day_projection_r6, 'r', linestyle='dashed', label ='R 0.6')
+ax2.plot(days_for_projection, ninty_day_projection_r75, 'g', linestyle='dashed', label ='R 0.75')
 
 ax2.legend(loc = 'upper right')
 plt.ylabel('Number of {} daily'.format(stat.lower()), fontsize=18)
