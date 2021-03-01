@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import csv
 import numpy as np
 import sys
@@ -15,8 +13,8 @@ def clean_date(date):
 def average(rows, average_over):
     # Needed so last period in N day average 
     # is not less than N days
-    fill = len(rows) % average_over
-    for i in range(0, fill):
+
+    while len(rows) % average_over != 0:
         rows.insert(0, 0)
 
     for i in range(0, len(rows), average_over):
@@ -37,9 +35,9 @@ def args():
     stat = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] in stats else 'cases'
 
     if stat == 'cases':
-        idx, chart_name = 4, 'Cases'
+        idx, chart_name = 3, 'Cases'
     if stat == 'deaths':
-        idx, chart_name = 6, 'Deaths'
+        idx, chart_name = 5, 'Deaths'
     if stat == 'hospitalisied':
         idx, chart_name = 9, 'Hospitalisied'
     if stat == 'icu':
@@ -62,14 +60,12 @@ with open('CovidStatisticsProfileHPSCIrelandOpenData.csv') as data_file:
     reader = csv.reader(data_file, delimiter=',')
     headers = next(reader)
 
-    last_day_total = 0
     for row in reader:
         cur_day_total = 0 if row[idx] == '' else int(row[idx])
-        choosen_stat.append(cur_day_total)
-        choosen_stat_per_day.append(cur_day_total - last_day_total)
-        if cur_day_total - last_day_total > max_per_day:
-            max_per_day = cur_day_total - last_day_total
-        last_day_total = cur_day_total
+        choosen_stat.append(cur_day_total + (choosen_stat[-1] if len(choosen_stat) > 0 else 0))
+        choosen_stat_per_day.append(cur_day_total)
+        if cur_day_total > max_per_day:
+            max_per_day = cur_day_total
 
 choosen_stat = list(average(choosen_stat, average_over))
 choosen_stat_per_period = list(average(choosen_stat_per_day, average_over))
@@ -105,6 +101,7 @@ r = round((sum(last_n_periods[1::])) / (sum(last_n_periods[:previous_periods_in_
 ninty_day_projection = project_for_r(choosen_stat_per_period, r)
 ninty_day_projection_r6 = project_for_r(choosen_stat_per_period, 0.6)
 ninty_day_projection_r75 = project_for_r(choosen_stat_per_period, 0.75)
+ninty_day_projection_r12 = project_for_r(choosen_stat_per_period, 1.2)
 
 days_for_projection = [days_since_epoch[-1]]
 while len(days_for_projection) < len(ninty_day_projection):
@@ -114,6 +111,8 @@ ax2.plot(days_since_epoch, choosen_stat_per_period, 'b', label=F'{stat} per day'
 ax2.plot(days_for_projection, ninty_day_projection, 'b', linestyle='dashed', label=F'R {r}')
 ax2.plot(days_for_projection, ninty_day_projection_r6, 'r', linestyle='dashed', label='R 0.6')
 ax2.plot(days_for_projection, ninty_day_projection_r75, 'g', linestyle='dashed', label='R 0.75')
+ax2.plot(days_for_projection, ninty_day_projection_r12, 'y', linestyle='dashed', label='R 1.2')
+
 
 ax2.legend(loc='upper right')
 plt.ylabel(F'Number of {stat.lower()} daily', fontsize=18)
@@ -134,4 +133,4 @@ ax2.annotate('+ 90 days', xy=(days_since_epoch[-1] + 90 - offset, max_per_day - 
 plt.grid()
 
 plt.gcf().set_size_inches(18, 10)
-plt.savefig('out', bbox_inches='tight', pad_inches=.75)
+plt.savefig('out', bbox_inches='tight', pad_inches=.75, dpi=250)
